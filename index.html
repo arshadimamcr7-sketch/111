@@ -1,0 +1,478 @@
+
+<h2 class="sr-only" style="position:absolute;width:1px;height:1px;overflow:hidden;">InsightFlow SME analytics dashboard showing KPIs, association rules, sales trends, customer behaviour, and recommendations from café transaction data.</h2>
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans,system-ui);font-size:14px;color:var(--color-text-primary)}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;border-bottom:0.5px solid var(--color-border-tertiary);background:var(--color-background-primary)}
+.brand{display:flex;align-items:center;gap:8px}
+.logomark{width:26px;height:26px;border-radius:6px;background:#1D9E75;display:flex;align-items:center;justify-content:center}
+.logomark svg{width:14px;height:14px;fill:#fff}
+.brand-name{font-size:14px;font-weight:500}
+.pill{font-size:10px;background:#E1F5EE;color:#085041;padding:2px 8px;border-radius:10px;font-weight:500}
+.tabs{display:flex;gap:2px}
+.tab{padding:5px 12px;border-radius:6px;font-size:12px;cursor:pointer;border:none;background:transparent;color:var(--color-text-secondary)}
+.tab.on{background:var(--color-background-secondary);color:var(--color-text-primary);font-weight:500}
+.tab:hover{background:var(--color-background-secondary)}
+.page{display:none;padding:18px 20px}
+.page.on{display:block}
+.row{display:grid;gap:12px;margin-bottom:16px}
+.g4{grid-template-columns:repeat(4,1fr)}
+.g2{grid-template-columns:1fr 1fr}
+.g3{grid-template-columns:1fr 1fr 1fr}
+.kpi{background:var(--color-background-secondary);border-radius:8px;padding:14px 16px}
+.kpi-l{font-size:11px;color:var(--color-text-secondary);margin-bottom:5px;text-transform:uppercase;letter-spacing:.04em}
+.kpi-v{font-size:24px;font-weight:500;line-height:1}
+.kpi-d{font-size:11px;margin-top:4px}
+.up{color:#1D9E75}.dn{color:#E24B4A}
+.card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:12px;padding:16px 18px}
+.card-title{font-size:13px;font-weight:500;margin-bottom:12px}
+.card-sub{font-size:11px;color:var(--color-text-secondary);font-weight:400;margin-left:6px}
+.sec-label{font-size:11px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px}
+table{width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed}
+th{text-align:left;font-size:10px;font-weight:500;color:var(--color-text-secondary);padding:0 6px 6px 0;border-bottom:0.5px solid var(--color-border-tertiary);text-transform:uppercase;letter-spacing:.04em}
+td{padding:7px 6px 7px 0;border-bottom:0.5px solid var(--color-border-tertiary);color:var(--color-text-primary);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+.badge{display:inline-block;padding:2px 7px;border-radius:10px;font-size:10px;font-weight:500}
+.b-teal{background:#E1F5EE;color:#085041}
+.b-amber{background:#FAEEDA;color:#633806}
+.b-blue{background:#E6F1FB;color:#0C447C}
+.b-red{background:#FCEBEB;color:#791F1F}
+.b-gray{background:#F1EFE8;color:#444441}
+.b-coral{background:#FAECE7;color:#712B13}
+.frow{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.flabel{font-size:11px;color:var(--color-text-secondary)}
+.fval{font-size:12px;font-weight:500;min-width:28px}
+.rec{display:flex;gap:12px;align-items:flex-start;padding:11px 13px;background:var(--color-background-secondary);border-radius:8px;margin-bottom:10px}
+.rec-ic{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:14px}
+.rec-t{font-size:13px;font-weight:500;margin-bottom:2px}
+.rec-d{font-size:12px;color:var(--color-text-secondary);line-height:1.5}
+.rec-a{font-size:11px;color:#0F6E56;font-weight:500;margin-top:3px}
+.lift-bar{display:inline-block;height:6px;border-radius:3px;background:#1D9E75;vertical-align:middle;margin-left:6px}
+.cust-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:0.5px solid var(--color-border-tertiary)}
+.cust-row:last-child{border-bottom:none}
+.avatar{width:30px;height:30px;border-radius:50%;background:#E1F5EE;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;color:#085041;flex-shrink:0}
+.cust-info{flex:1}
+.cust-name{font-size:13px;font-weight:500}
+.cust-sub{font-size:11px;color:var(--color-text-secondary)}
+.cust-val{font-size:13px;font-weight:500;text-align:right}
+.upload-zone{border:1.5px dashed var(--color-border-secondary);border-radius:10px;padding:32px;text-align:center;color:var(--color-text-secondary)}
+.upload-zone p{font-size:13px;margin-bottom:8px}
+.preview-table{overflow-x:auto;margin-top:16px}
+.preview-table table{font-size:11px;min-width:600px}
+.btn{padding:6px 14px;border-radius:6px;border:0.5px solid var(--color-border-secondary);background:transparent;color:var(--color-text-primary);font-size:12px;cursor:pointer}
+.btn:hover{background:var(--color-background-secondary)}
+</style>
+
+<div class="topbar">
+  <div class="brand">
+    <div class="logomark"><svg viewBox="0 0 16 16"><path d="M2 10 Q8 2 14 10 Q8 14 2 10Z"/></svg></div>
+    <span class="brand-name">InsightFlow</span>
+    <span class="pill">SME</span>
+  </div>
+  <div class="tabs">
+    <button class="tab on" onclick="showTab('overview')">Overview</button>
+    <button class="tab" onclick="showTab('rules')">Associations</button>
+    <button class="tab" onclick="showTab('temporal')">Sales trends</button>
+    <button class="tab" onclick="showTab('customers')">Customers</button>
+    <button class="tab" onclick="showTab('recs')">Recommendations</button>
+    <button class="tab" onclick="showTab('upload')">Data</button>
+  </div>
+</div>
+
+<div id="tab-overview" class="page on">
+  <div class="row g4">
+    <div class="kpi"><div class="kpi-l">Total revenue</div><div class="kpi-v">£63.50</div><div class="kpi-d up">▲ 10 transactions</div></div>
+    <div class="kpi"><div class="kpi-l">Transactions</div><div class="kpi-v">10</div><div class="kpi-d" style="color:var(--color-text-secondary)">Jan 3–7, 2025</div></div>
+    <div class="kpi"><div class="kpi-l">Avg basket size</div><div class="kpi-v">£6.35</div><div class="kpi-d" style="color:var(--color-text-secondary)">per transaction</div></div>
+    <div class="kpi"><div class="kpi-l">Repeat customer rate</div><div class="kpi-v">43%</div><div class="kpi-d up">▲ 3 of 7 customers</div></div>
+  </div>
+
+  <div class="row g2">
+    <div class="card">
+      <div class="card-title">Daily revenue <span class="card-sub">Jan 3–7</span></div>
+      <div style="position:relative;width:100%;height:180px">
+        <canvas id="c-daily" role="img" aria-label="Line chart of daily revenue Jan 3 to 7">Jan 3: £10.50, Jan 4: £16.50, Jan 5: £15.50, Jan 6: £13.50, Jan 7: £7.50</canvas>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Revenue by category</div>
+      <div style="display:flex;gap:12px;margin-bottom:8px;font-size:11px;color:var(--color-text-secondary)">
+        <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:#1D9E75"></span>Food £35.50</span>
+        <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:#378ADD;border:1px dashed #185FA5"></span>Beverage £28.00</span>
+      </div>
+      <div style="position:relative;width:100%;height:160px">
+        <canvas id="c-cat" role="img" aria-label="Doughnut chart of revenue by category">Food 56%, Beverage 44%</canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Top products by revenue</div>
+    <div style="position:relative;width:100%;height:200px">
+      <canvas id="c-products" role="img" aria-label="Horizontal bar chart of product revenues">Coffee £21, Sandwich £15, Pastry £12.50, Cake £7, Salad £9, Juice £6, Drink £8</canvas>
+    </div>
+  </div>
+</div>
+
+<div id="tab-rules" class="page">
+  <div class="card" style="margin-bottom:16px">
+    <div class="card-title">Association rule filters</div>
+    <div class="frow">
+      <span class="flabel">Min support</span>
+      <input type="range" id="sl-sup" min="1" max="5" step="1" value="2" style="width:120px" oninput="filterRules()">
+      <span class="fval" id="v-sup">0.20</span>
+      <span class="flabel" style="margin-left:12px">Min confidence</span>
+      <input type="range" id="sl-conf" min="1" max="10" step="1" value="5" style="width:120px" oninput="filterRules()">
+      <span class="fval" id="v-conf">0.50</span>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Product association rules <span class="card-sub">top rules by lift</span></div>
+    <table>
+      <thead><tr>
+        <th style="width:28%">If customer buys</th>
+        <th style="width:24%">They also buy</th>
+        <th style="width:12%">Support</th>
+        <th style="width:14%">Confidence</th>
+        <th style="width:22%">Lift</th>
+      </tr></thead>
+      <tbody id="rules-body"></tbody>
+    </table>
+  </div>
+</div>
+
+<div id="tab-temporal" class="page">
+  <div class="row g2" style="margin-bottom:16px">
+    <div class="kpi"><div class="kpi-l">Best day</div><div class="kpi-v">Saturday</div><div class="kpi-d up">Jan 4 — £16.50</div></div>
+    <div class="kpi"><div class="kpi-l">Peak hour</div><div class="kpi-v">08–09h</div><div class="kpi-d up">Morning rush</div></div>
+    <div class="kpi"><div class="kpi-l">Weekend vs weekday</div><div class="kpi-v">Weekday</div><div class="kpi-d" style="color:var(--color-text-secondary)">Mon–Fri higher</div></div>
+    <div class="kpi"><div class="kpi-l">Avg daily revenue</div><div class="kpi-v">£12.70</div><div class="kpi-d" style="color:var(--color-text-secondary)">over 5 days</div></div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px">
+    <div class="card-title">Revenue by day of week</div>
+    <div style="position:relative;width:100%;height:200px">
+      <canvas id="c-dow" role="img" aria-label="Bar chart of revenue by day of week">Friday £10.50, Saturday £16.50, Sunday £15.50, Monday £13.50, Tuesday £7.50</canvas>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Sales by hour of day</div>
+    <div style="position:relative;width:100%;height:180px">
+      <canvas id="c-hour" role="img" aria-label="Bar chart of sales by hour">08h: £12, 09h: £9.50, 10h: £8, 12h: £14, 13h: £7, 14h: £7.50, 15h: £5.50</canvas>
+    </div>
+  </div>
+</div>
+
+<div id="tab-customers" class="page">
+  <div class="row g3" style="margin-bottom:16px">
+    <div class="kpi"><div class="kpi-l">Total customers</div><div class="kpi-v">7</div><div class="kpi-d" style="color:var(--color-text-secondary)">unique IDs</div></div>
+    <div class="kpi"><div class="kpi-l">Repeat customers</div><div class="kpi-v">3</div><div class="kpi-d up">C001, C002, C007</div></div>
+    <div class="kpi"><div class="kpi-l">New customers</div><div class="kpi-v">4</div><div class="kpi-d" style="color:var(--color-text-secondary)">1 visit each</div></div>
+  </div>
+
+  <div class="row g2">
+    <div class="card">
+      <div class="card-title">Customer segments</div>
+      <div style="display:flex;gap:12px;margin-bottom:8px;font-size:11px;color:var(--color-text-secondary)">
+        <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:#1D9E75"></span>High value 14%</span>
+        <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:#378ADD;border:1px dashed #185FA5"></span>Occasional 29%</span>
+        <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:#B4B2A9;border:1px dotted #888780"></span>At risk 57%</span>
+      </div>
+      <div style="position:relative;width:100%;height:180px">
+        <canvas id="c-seg" role="img" aria-label="Doughnut chart of customer segments">High value 1, Occasional 2, At risk 4</canvas>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Top spending customers</div>
+      <div id="cust-list"></div>
+    </div>
+  </div>
+</div>
+
+<div id="tab-recs" class="page">
+  <div class="sec-label">Smart recommendations — plain language insights from your data</div>
+
+  <div class="rec">
+    <div class="rec-ic" style="background:#E1F5EE">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="#1D9E75"><path d="M2 8h12M8 2l4 6-4 6-4-6z"/></svg>
+    </div>
+    <div>
+      <div class="rec-t">Coffee + Pastry is your most popular combo</div>
+      <div class="rec-d">3 out of 10 transactions included both Coffee and Pastry together. Customers who buy one almost always buy the other (60% confidence, lift 1.7×).</div>
+      <div class="rec-a">Create a "Morning Duo" bundle at a small discount to boost average spend.</div>
+    </div>
+  </div>
+
+  <div class="rec">
+    <div class="rec-ic" style="background:#E1F5EE">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="#1D9E75"><path d="M4 4h8v8H4z" fill="none" stroke="#1D9E75" stroke-width="1.5"/><path d="M7 7h2v4H7z"/></svg>
+    </div>
+    <div>
+      <div class="rec-t">Sandwich + Drink is a strong lunch pair</div>
+      <div class="rec-d">Every customer who bought a Sandwich also bought a Drink (100% confidence). This happened in 3 separate transactions across different customers.</div>
+      <div class="rec-a">Bundle Sandwich + Drink as a "Lunch Deal" — you'll almost certainly sell both together anyway.</div>
+    </div>
+  </div>
+
+  <div class="rec">
+    <div class="rec-ic" style="background:#FAEEDA">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="#854F0B"><circle cx="8" cy="8" r="6" fill="none" stroke="#BA7517" stroke-width="1.5"/><path d="M8 5v4M8 11v1"/></svg>
+    </div>
+    <div>
+      <div class="rec-t">Saturday is your biggest revenue day</div>
+      <div class="rec-d">Saturday (Jan 4) generated £16.50 — 26% of your weekly revenue. The morning slot (08–10h) sees the highest footfall across all days.</div>
+      <div class="rec-a">Make sure you're fully staffed on Saturday mornings. Consider a weekend-only special to drive even more traffic.</div>
+    </div>
+  </div>
+
+  <div class="rec">
+    <div class="rec-ic" style="background:#FAEEDA">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="#854F0B"><path d="M3 13 L8 3 L13 13 Z" fill="none" stroke="#BA7517" stroke-width="1.5"/><path d="M8 7v3M8 11v1"/></svg>
+    </div>
+    <div>
+      <div class="rec-t">Tuesday is your slowest day — only £7.50 revenue</div>
+      <div class="rec-d">Tuesday (Jan 7) had just 2 transactions, both single-item purchases. Revenue was 55% lower than your best day.</div>
+      <div class="rec-a">Run a Tuesday promotion — "2-for-1 Pastry with any hot drink" — to convert single-item visits into bigger baskets.</div>
+    </div>
+  </div>
+
+  <div class="rec">
+    <div class="rec-ic" style="background:#E6F1FB">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="#185FA5"><circle cx="6" cy="5" r="2.5" fill="none" stroke="#378ADD" stroke-width="1.5"/><path d="M10 8a2 2 0 110 4 2 2 0 010-4" fill="none" stroke="#378ADD" stroke-width="1.5"/><path d="M2 14a4 3 0 018 0" fill="none" stroke="#378ADD" stroke-width="1.5"/></svg>
+    </div>
+    <div>
+      <div class="rec-t">Customer C001 is your most loyal — reward them</div>
+      <div class="rec-d">C001 visited 3 times in 5 days and spent £13.50, making them your top customer by both frequency and spend. They buy Coffee, Sandwich and Cake.</div>
+      <div class="rec-a">A simple loyalty card could retain C001 and encourage other occasional customers to visit more often.</div>
+    </div>
+  </div>
+
+  <div class="rec">
+    <div class="rec-ic" style="background:#FCEBEB">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="#A32D2D"><path d="M8 2a6 6 0 100 12A6 6 0 008 2z" fill="none" stroke="#E24B4A" stroke-width="1.5"/><path d="M8 5v4M8 10v1.5"/></svg>
+    </div>
+    <div>
+      <div class="rec-t">4 customers visited only once — they may not return</div>
+      <div class="rec-d">C003, C004, C005, C006 each made a single visit. Without a reason to come back, one-time visitors are unlikely to return on their own.</div>
+      <div class="rec-a">Add a "Come back" card to every receipt — a small reward for the next visit converts one-timers into regulars.</div>
+    </div>
+  </div>
+
+  <div style="margin-top:16px">
+    <button class="btn" onclick="sendPrompt('Can you suggest a specific loyalty programme structure for my café based on the InsightFlow data?')">Ask for a loyalty programme design ↗</button>
+    <button class="btn" style="margin-left:8px" onclick="sendPrompt('What pricing strategy would work best given the association rules and customer behaviour in my InsightFlow data?')">Ask about pricing strategy ↗</button>
+  </div>
+</div>
+
+<div id="tab-upload" class="page">
+  <div class="card" style="margin-bottom:16px">
+    <div class="card-title">Upload your CSV data</div>
+    <div class="upload-zone">
+      <p>Drop a CSV file here or click to select</p>
+      <p style="font-size:11px;margin-bottom:12px">Required columns: Transaction_ID, Date, Customer_ID, Product, Category, Quantity, Price, Total_Sale</p>
+      <input type="file" id="csv-file" accept=".csv" style="display:none" onchange="handleCSV(this)">
+      <button class="btn" onclick="document.getElementById('csv-file').click()">Choose file</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Current dataset preview <span class="card-sub">20 rows loaded</span></div>
+    <div class="preview-table">
+      <table id="preview-tbl">
+        <thead><tr>
+          <th>Transaction</th><th>Date</th><th>Time</th><th>Customer</th><th>Product</th><th>Category</th><th>Qty</th><th>Price</th><th>Total</th>
+        </tr></thead>
+        <tbody id="preview-body"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const RAW = [
+  {tid:'T001',date:'2025-01-03',time:'08:15',cid:'C001',product:'Coffee',cat:'Beverage',qty:1,price:3.00,total:3.00},
+  {tid:'T001',date:'2025-01-03',time:'08:15',cid:'C001',product:'Pastry',cat:'Food',qty:1,price:2.50,total:2.50},
+  {tid:'T002',date:'2025-01-03',time:'12:30',cid:'C002',product:'Sandwich',cat:'Food',qty:1,price:5.00,total:5.00},
+  {tid:'T002',date:'2025-01-03',time:'12:30',cid:'C002',product:'Drink',cat:'Beverage',qty:1,price:2.00,total:2.00},
+  {tid:'T003',date:'2025-01-04',time:'09:10',cid:'C003',product:'Coffee',cat:'Beverage',qty:2,price:3.00,total:6.00},
+  {tid:'T003',date:'2025-01-04',time:'09:10',cid:'C003',product:'Cake',cat:'Food',qty:1,price:3.50,total:3.50},
+  {tid:'T004',date:'2025-01-04',time:'13:20',cid:'C001',product:'Sandwich',cat:'Food',qty:1,price:5.00,total:5.00},
+  {tid:'T004',date:'2025-01-04',time:'13:20',cid:'C001',product:'Drink',cat:'Beverage',qty:1,price:2.00,total:2.00},
+  {tid:'T005',date:'2025-01-05',time:'10:05',cid:'C004',product:'Coffee',cat:'Beverage',qty:1,price:3.00,total:3.00},
+  {tid:'T005',date:'2025-01-05',time:'10:05',cid:'C004',product:'Pastry',cat:'Food',qty:2,price:2.50,total:5.00},
+  {tid:'T006',date:'2025-01-05',time:'14:45',cid:'C005',product:'Salad',cat:'Food',qty:1,price:4.50,total:4.50},
+  {tid:'T006',date:'2025-01-05',time:'14:45',cid:'C005',product:'Juice',cat:'Beverage',qty:1,price:3.00,total:3.00},
+  {tid:'T007',date:'2025-01-06',time:'08:50',cid:'C002',product:'Coffee',cat:'Beverage',qty:1,price:3.00,total:3.00},
+  {tid:'T007',date:'2025-01-06',time:'08:50',cid:'C002',product:'Pastry',cat:'Food',qty:1,price:2.50,total:2.50},
+  {tid:'T008',date:'2025-01-06',time:'12:15',cid:'C006',product:'Sandwich',cat:'Food',qty:1,price:5.00,total:5.00},
+  {tid:'T008',date:'2025-01-06',time:'12:15',cid:'C006',product:'Drink',cat:'Beverage',qty:1,price:2.00,total:2.00},
+  {tid:'T009',date:'2025-01-07',time:'09:30',cid:'C001',product:'Coffee',cat:'Beverage',qty:1,price:3.00,total:3.00},
+  {tid:'T009',date:'2025-01-07',time:'09:30',cid:'C001',product:'Cake',cat:'Food',qty:1,price:3.50,total:3.50},
+  {tid:'T010',date:'2025-01-07',time:'15:10',cid:'C007',product:'Juice',cat:'Beverage',qty:1,price:3.00,total:3.00},
+  {tid:'T010',date:'2025-01-07',time:'15:10',cid:'C007',product:'Salad',cat:'Food',qty:1,price:4.50,total:4.50}
+];
+
+const RULES = [
+  {a:'Sandwich',b:'Drink',sup:3,conf:1.00,lift:2.50},
+  {a:'Drink',b:'Sandwich',sup:3,conf:1.00,lift:2.20},
+  {a:'Coffee',b:'Pastry',sup:3,conf:0.60,lift:1.71},
+  {a:'Pastry',b:'Coffee',sup:3,conf:0.75,lift:1.71},
+  {a:'Coffee',b:'Cake',sup:2,conf:0.40,lift:1.60},
+  {a:'Cake',b:'Coffee',sup:2,conf:0.80,lift:1.60},
+  {a:'Salad',b:'Juice',sup:2,conf:1.00,lift:2.50},
+  {a:'Juice',b:'Salad',sup:2,conf:1.00,lift:2.50},
+  {a:'Coffee',b:'Drink',sup:2,conf:0.40,lift:0.67},
+  {a:'Pastry',b:'Drink',sup:1,conf:0.25,lift:0.50}
+];
+
+const N = 10;
+
+function showTab(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+  document.getElementById('tab-'+id).classList.add('on');
+  event.target.classList.add('on');
+}
+
+function filterRules(){
+  const supSlider = document.getElementById('sl-sup');
+  const confSlider = document.getElementById('sl-conf');
+  const supThresh = parseInt(supSlider.value)/10;
+  const confThresh = parseInt(confSlider.value)/10;
+  document.getElementById('v-sup').textContent = supThresh.toFixed(2);
+  document.getElementById('v-conf').textContent = confThresh.toFixed(2);
+  const filtered = RULES.filter(r => r.sup/N >= supThresh && r.conf >= confThresh);
+  const tbody = document.getElementById('rules-body');
+  tbody.innerHTML = '';
+  if(!filtered.length){tbody.innerHTML='<tr><td colspan="5" style="color:var(--color-text-secondary);padding:16px 0">No rules match these thresholds — try lowering the sliders.</td></tr>';return;}
+  filtered.slice(0,10).forEach(r=>{
+    const supPct = ((r.sup/N)*100).toFixed(0);
+    const confPct = (r.conf*100).toFixed(0);
+    const liftW = Math.min(Math.round((r.lift/3)*60),60);
+    const liftColor = r.lift>=2?'#1D9E75':r.lift>=1.5?'#BA7517':'#888780';
+    tbody.innerHTML+=`<tr>
+      <td><span class="badge b-teal">${r.a}</span></td>
+      <td><span class="badge b-blue">${r.b}</span></td>
+      <td>${supPct}% <span style="color:var(--color-text-secondary);font-size:10px">(${r.sup}/${N})</span></td>
+      <td>${confPct}%</td>
+      <td>${r.lift.toFixed(2)}× <span style="display:inline-block;width:${liftW}px;height:6px;border-radius:3px;background:${liftColor};vertical-align:middle;margin-left:4px"></span></td>
+    </tr>`;
+  });
+}
+
+function buildPreview(){
+  const tbody = document.getElementById('preview-body');
+  RAW.forEach(r=>{
+    tbody.innerHTML+=`<tr>
+      <td>${r.tid}</td><td>${r.date}</td><td>${r.time}</td><td>${r.cid}</td>
+      <td>${r.product}</td><td><span class="badge ${r.cat==='Food'?'b-amber':'b-blue'}">${r.cat}</span></td>
+      <td>${r.qty}</td><td>£${r.price.toFixed(2)}</td><td>£${r.total.toFixed(2)}</td>
+    </tr>`;
+  });
+}
+
+function buildCustomers(){
+  const spend = {};
+  const visits = {};
+  RAW.forEach(r=>{
+    spend[r.cid]=(spend[r.cid]||0)+r.total;
+    visits[r.cid]=visits[r.cid]||new Set();
+    visits[r.cid].add(r.tid);
+  });
+  const sorted = Object.keys(spend).sort((a,b)=>spend[b]-spend[a]);
+  const el = document.getElementById('cust-list');
+  el.innerHTML='';
+  sorted.forEach(cid=>{
+    const v = visits[cid].size;
+    const seg = v>=3?{l:'High value',c:'b-teal'}:v>=2?{l:'Occasional',c:'b-blue'}:{l:'At risk',c:'b-red'};
+    el.innerHTML+=`<div class="cust-row">
+      <div class="avatar">${cid.replace('C','')}</div>
+      <div class="cust-info">
+        <div class="cust-name">${cid}</div>
+        <div class="cust-sub">${v} visit${v>1?'s':''} · <span class="badge ${seg.c}">${seg.l}</span></div>
+      </div>
+      <div class="cust-val">£${spend[cid].toFixed(2)}</div>
+    </div>`;
+  });
+}
+
+function handleCSV(input){
+  const file = input.files[0];
+  if(!file)return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const lines = e.target.result.trim().split('\n');
+    const headers = lines[0].split(',');
+    const tbody = document.getElementById('preview-body');
+    tbody.innerHTML='';
+    lines.slice(1,21).forEach(line=>{
+      const cols = line.split(',');
+      tbody.innerHTML+=`<tr>${cols.map(c=>`<td>${c}</td>`).join('')}</tr>`;
+    });
+    const card = document.querySelector('#tab-upload .card:last-child .card-title span');
+    if(card) card.textContent = `${lines.length-1} rows loaded`;
+    sendPrompt(`I just uploaded a new CSV dataset with ${lines.length-1} rows to InsightFlow. Can you explain what analysis I should run first?`);
+  };
+  reader.readAsText(file);
+}
+
+const isDark = matchMedia('(prefers-color-scheme:dark)').matches;
+const textColor = isDark ? '#b4b2a9' : '#5f5e5a';
+const gridColor = isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.07)';
+const baseOpts = {responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:gridColor},ticks:{color:textColor,font:{size:11}}},y:{grid:{color:gridColor},ticks:{color:textColor,font:{size:11}}}}};
+
+function initCharts(){
+  new Chart(document.getElementById('c-daily'),{
+    type:'line',
+    data:{labels:['Fri Jan 3','Sat Jan 4','Sun Jan 5','Mon Jan 6','Tue Jan 7'],datasets:[{label:'Revenue',data:[10.5,16.5,15.5,13.5,7.5],borderColor:'#1D9E75',backgroundColor:'transparent',borderWidth:2,pointBackgroundColor:'#1D9E75',pointRadius:4,tension:.3}]},
+    options:{...baseOpts,scales:{...baseOpts.scales,y:{...baseOpts.scales.y,ticks:{...baseOpts.scales.y.ticks,callback:v=>'£'+v}}}}
+  });
+
+  new Chart(document.getElementById('c-cat'),{
+    type:'doughnut',
+    data:{labels:['Food','Beverage'],datasets:[{data:[35.5,28],backgroundColor:['#1D9E75','#378ADD'],borderWidth:[0,2],borderDash:[[0],[5,5]],hoverOffset:4}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},cutout:'65%'}
+  });
+
+  new Chart(document.getElementById('c-products'),{
+    type:'bar',
+    data:{
+      labels:['Coffee','Sandwich','Pastry','Salad','Cake','Drink','Juice'],
+      datasets:[{label:'Revenue',data:[21,15,12.5,9,7,8,6],backgroundColor:'#1D9E75',borderRadius:4,borderSkipped:false}]
+    },
+    options:{...baseOpts,indexAxis:'y',scales:{x:{...baseOpts.scales.x,ticks:{...baseOpts.scales.x.ticks,callback:v=>'£'+v}},y:{...baseOpts.scales.y}}}
+  });
+
+  new Chart(document.getElementById('c-dow'),{
+    type:'bar',
+    data:{
+      labels:['Fri Jan 3','Sat Jan 4','Sun Jan 5','Mon Jan 6','Tue Jan 7'],
+      datasets:[{label:'Revenue',data:[10.5,16.5,15.5,13.5,7.5],backgroundColor:['#9FE1CB','#1D9E75','#5DCAA5','#0F6E56','#9FE1CB'],borderRadius:4}]
+    },
+    options:{...baseOpts,scales:{...baseOpts.scales,y:{...baseOpts.scales.y,ticks:{...baseOpts.scales.y.ticks,callback:v=>'£'+v}}}}
+  });
+
+  new Chart(document.getElementById('c-hour'),{
+    type:'bar',
+    data:{
+      labels:['08h','09h','10h','12h','13h','14h','15h'],
+      datasets:[{label:'Revenue',data:[12,9.5,8,14,7,7.5,5.5],backgroundColor:'#378ADD',borderRadius:4}]
+    },
+    options:{...baseOpts,scales:{...baseOpts.scales,y:{...baseOpts.scales.y,ticks:{...baseOpts.scales.y.ticks,callback:v=>'£'+v}}}}
+  });
+
+  new Chart(document.getElementById('c-seg'),{
+    type:'doughnut',
+    data:{labels:['High value','Occasional','At risk'],datasets:[{data:[1,2,4],backgroundColor:['#1D9E75','#378ADD','#B4B2A9'],borderWidth:[0,2,0],borderDash:[[0],[4,4],[0]],hoverOffset:4}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},cutout:'62%'}
+  });
+}
+
+filterRules();
+buildPreview();
+buildCustomers();
+initCharts();
+</script>
